@@ -1,0 +1,5 @@
+﻿# R package library used only for local reproduction
+.R-library/
+.Rhistory
+.RData
+.Ruserdata
