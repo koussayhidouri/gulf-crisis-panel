@@ -36,7 +36,10 @@ library(forecast)    # For ARIMA forecasting of Apr-Jun 2026 values
 # Load the dataset (replace 'your_data.csv' with the actual file path)
 # The dataset should be in 'long' format with columns:
 # country, date, group, oil_balance, cpi, ipi, brent, neer, policy_rate, vix
-data_raw <- read.csv("panel_data_gulf_crisis_2026.csv", stringsAsFactors = FALSE)
+dir.create("results/figures", recursive = TRUE, showWarnings = FALSE)
+dir.create("results/tables", recursive = TRUE, showWarnings = FALSE)
+
+data_raw <- read.csv("data/panel_data.csv", stringsAsFactors = FALSE)
 
 # Inspect the data structure
 str(data_raw)
@@ -101,7 +104,7 @@ ggplot(data_processed, aes(x = date, y = brent)) +
        x = "Date", y = "USD per Barrel") +
   theme_minimal()
 
-ggsave("plot_brent_price.png", width = 10, height = 5, dpi = 150)
+ggsave("results/figures/brent-oil-price.png", width = 10, height = 5, dpi = 150)
 
 # Plot the average CPI trend for different country groups
 # (You need to create a 'group' column first, e.g., 'Advanced_Importer', 'Emerging_Importer', etc.)
@@ -113,7 +116,7 @@ ggplot(data_processed, aes(x = date, y = ln_cpi, color = group)) +
        x = "Date", y = "Log(CPI)") +
   theme_minimal()
 
-ggsave("plot_ln_cpi_trends.png", width = 12, height = 5, dpi = 150)
+ggsave("results/figures/cpi-log-trends-by-group.png", width = 12, height = 5, dpi = 150)
 
 # Additional plot: Log IPI trends by group
 ggplot(data_processed, aes(x = date, y = ln_ipi, color = group)) +
@@ -123,7 +126,7 @@ ggplot(data_processed, aes(x = date, y = ln_ipi, color = group)) +
        x = "Date", y = "Log(IPI)") +
   theme_minimal()
 
-ggsave("plot_ln_ipi_trends.png", width = 12, height = 5, dpi = 150)
+ggsave("results/figures/ipi-log-trends-by-group.png", width = 12, height = 5, dpi = 150)
 
 # Additional plot: Monthly Oil Shock over time
 brent_unique <- data_processed %>% select(date, oil_pct_change) %>% distinct()
@@ -135,7 +138,7 @@ ggplot(brent_unique, aes(x = date, y = oil_pct_change, fill = oil_pct_change > 0
        x = "Date", y = "% Change") +
   theme_minimal()
 
-ggsave("plot_oil_shock.png", width = 10, height = 4, dpi = 150)
+ggsave("results/figures/monthly-oil-price-change.png", width = 10, height = 4, dpi = 150)
 
 # Descriptive statistics
 cat("\n--- Descriptive Statistics ---\n")
@@ -211,7 +214,7 @@ stargazer(pols_model, fe_model, re_model,
                                "Policy Rate", "VIX", "Post-Crisis Dummy"),
           keep.stat = c("n", "rsq", "adj.rsq"),
           type = "text",
-          out  = "table_cpi_models.txt")
+          out  = "results/tables/cpi-models.txt")
 
 # Regression tables (IPI)
 stargazer(pols_model_ipi, fe_model_ipi, re_model_ipi,
@@ -222,7 +225,7 @@ stargazer(pols_model_ipi, fe_model_ipi, re_model_ipi,
                                "Policy Rate", "VIX", "Post-Crisis Dummy"),
           keep.stat = c("n", "rsq", "adj.rsq"),
           type = "text",
-          out  = "table_ipi_models.txt")
+          out  = "results/tables/ipi-models.txt")
 
 # ============================================================================
 # 5. DIAGNOSTIC TESTS AND ROBUST STANDARD ERRORS
@@ -344,10 +347,10 @@ coeftest(fe_interact, vcov = vcovHC(fe_interact, method = "arellano", type = "HC
 # - Acknowledge limitations (e.g., short time frame, potential endogeneity).
 
 cat("\n\nAll outputs generated. Key files produced:\n")
-cat("  panel_data_gulf_crisis_2026.csv  – the full panel dataset\n")
-cat("  table_cpi_models.txt             – Table 1: CPI regression comparison\n")
-cat("  table_ipi_models.txt             – Table 2: IPI regression comparison\n")
-cat("  plot_brent_price.png             – Brent oil price chart\n")
-cat("  plot_ln_cpi_trends.png           – CPI trends by group\n")
-cat("  plot_ln_ipi_trends.png           – IPI trends by group\n")
-cat("  plot_oil_shock.png               – Monthly oil shock bar chart\n")
+cat("  data/panel_data.csv                          - the full panel dataset\n")
+cat("  results/tables/cpi-models.txt                - CPI regression comparison\n")
+cat("  results/tables/ipi-models.txt                - IPI regression comparison\n")
+cat("  results/figures/brent-oil-price.png          - Brent oil price chart\n")
+cat("  results/figures/cpi-log-trends-by-group.png  - CPI trends by group\n")
+cat("  results/figures/ipi-log-trends-by-group.png  - IPI trends by group\n")
+cat("  results/figures/monthly-oil-price-change.png - monthly oil price change\n")
