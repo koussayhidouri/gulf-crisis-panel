@@ -2,7 +2,9 @@
 
 ## Run performed
 
-The current R script was run with R 4.6.1 and the project dependencies. It completed and regenerated both regression tables and all four plots. The analysis sample has 492 rows after within-country first differencing (12 countries x 41 months).
+The current R script was run with R 4.6.1 and the project dependencies. It completed and regenerated both regression tables and all four plots. The analysis sample has 492 rows after within-country first differencing (12 countries x 41 months). Subgroup models use freshly indexed panel subsets to avoid invalid `pdata.frame` warnings.
+
+The run produced four R startup locale warnings because this Windows environment does not provide the configured `C.UTF-8` locale. No model or plotting warnings remained.
 
 From the project root, use:
 

@@ -97,8 +97,8 @@ print(arima_fcst)
 
 # Plot the trend of oil prices over time
 ggplot(data_processed, aes(x = date, y = brent)) +
-  geom_line(color = "darkred", size = 1) +
-  geom_vline(xintercept = as.numeric(as.Date("2026-02-27")), linetype = "dashed", color = "blue") +
+  geom_line(color = "darkred", linewidth = 1) +
+  geom_vline(xintercept = as.Date("2026-02-27"), linetype = "dashed", color = "blue") +
   annotate("text", x = as.Date("2026-02-27"), y = max(data_processed$brent), label = "Crisis Start", hjust = -0.1) +
   labs(title = "Brent Crude Oil Price: Pre and Post 2026 Gulf Crisis",
        x = "Date", y = "USD per Barrel") +
@@ -110,8 +110,8 @@ ggsave("results/figures/brent-oil-price.png", width = 10, height = 5, dpi = 150)
 # (You need to create a 'group' column first, e.g., 'Advanced_Importer', 'Emerging_Importer', etc.)
 # Assuming you have a 'group' column:
 ggplot(data_processed, aes(x = date, y = ln_cpi, color = group)) +
-  stat_summary(fun = mean, geom = "line", size = 1) +
-  geom_vline(xintercept = as.numeric(as.Date("2026-02-27")), linetype = "dashed") +
+  stat_summary(fun = mean, geom = "line", linewidth = 1) +
+  geom_vline(xintercept = as.Date("2026-02-27"), linetype = "dashed") +
   labs(title = "Log CPI Trends by Country Group",
        x = "Date", y = "Log(CPI)") +
   theme_minimal()
@@ -120,8 +120,8 @@ ggsave("results/figures/cpi-log-trends-by-group.png", width = 12, height = 5, dp
 
 # Additional plot: Log IPI trends by group
 ggplot(data_processed, aes(x = date, y = ln_ipi, color = group)) +
-  stat_summary(fun = mean, geom = "line", size = 1) +
-  geom_vline(xintercept = as.numeric(as.Date("2026-02-27")), linetype = "dashed") +
+  stat_summary(fun = mean, geom = "line", linewidth = 1) +
+  geom_vline(xintercept = as.Date("2026-02-27"), linetype = "dashed") +
   labs(title = "Log Industrial Production Trends by Country Group",
        x = "Date", y = "Log(IPI)") +
   theme_minimal()
@@ -133,7 +133,7 @@ brent_unique <- data_processed %>% select(date, oil_pct_change) %>% distinct()
 ggplot(brent_unique, aes(x = date, y = oil_pct_change, fill = oil_pct_change > 0)) +
   geom_col(show.legend = FALSE) +
   scale_fill_manual(values = c("TRUE" = "steelblue", "FALSE" = "tomato")) +
-  geom_vline(xintercept = as.numeric(as.Date("2026-02-27")), linetype = "dashed") +
+  geom_vline(xintercept = as.Date("2026-02-27"), linetype = "dashed") +
   labs(title = "Monthly % Change in Brent Crude Oil Price (OilShock_t)",
        x = "Date", y = "% Change") +
   theme_minimal()
@@ -271,8 +271,14 @@ coeftest(fe_model_ipi, vcov = vcovHC(fe_model_ipi, method = "arellano", type = "
 # ============================================================================
 
 # Create a subset for oil importers (e.g., based on a column 'oil_balance' = 'importer')
-importers_data <- pdata %>% filter(oil_balance == "importer")
-exporters_data <- pdata %>% filter(oil_balance == "exporter")
+importers_data <- pdata.frame(
+  data_processed %>% filter(oil_balance == "importer"),
+  index = c("country", "date")
+)
+exporters_data <- pdata.frame(
+  data_processed %>% filter(oil_balance == "exporter"),
+  index = c("country", "date")
+)
 
 # Run FE models for each subgroup
 fe_importers <- plm(d_ln_cpi ~ oil_pct_change + d_ln_neer + policy_rate + vix + post_crisis,
@@ -300,8 +306,14 @@ stargazer(fe_importers_ipi, fe_exporters_ipi,
           keep.stat = c("n", "rsq"))
 
 # Advanced vs. Emerging split
-advanced_data <- pdata %>% filter(grepl("Advanced", group))
-emerging_data <- pdata %>% filter(grepl("Emerging", group))
+advanced_data <- pdata.frame(
+  data_processed %>% filter(grepl("Advanced", group)),
+  index = c("country", "date")
+)
+emerging_data <- pdata.frame(
+  data_processed %>% filter(grepl("Emerging", group)),
+  index = c("country", "date")
+)
 
 fe_advanced <- plm(d_ln_cpi ~ oil_pct_change + d_ln_neer + policy_rate + vix + post_crisis,
                    data = advanced_data, model = "within")
